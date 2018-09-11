@@ -28,6 +28,7 @@ RUN apt-get update && apt-get -yq dist-upgrade\
     fonts-liberation \
     fonts-dejavu \
     gcc \
+    gdebi-core \
     gfortran \
     ghostscript \
     ginac-tools \
