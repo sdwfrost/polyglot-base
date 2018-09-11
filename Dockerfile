@@ -1,4 +1,4 @@
-FROM ubuntu:bionic-20180724.1
+FROM ubuntu:bionic-20180821
 
 LABEL maintainer="Simon Frost <sdwfrost@gmail.com>"
 
