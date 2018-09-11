@@ -48,7 +48,7 @@ RUN apt-get update && apt-get -yq dist-upgrade\
     libblas-dev \
     liblapack-dev \
     libboost-all-dev \
-    libclang-6.0-dev
+    libclang-6.0-dev \
     libcln-dev \
     libcurl4-gnutls-dev \
     libgeos-dev \
