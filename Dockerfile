@@ -197,13 +197,13 @@ RUN R -e "devtools::install_github('IRkernel/IRkernel')" && \
     fix-permissions /usr/local/share/jupyter
 RUN pip install rpy2
 RUN R -e "devtools::install_github('mrc-ide/odin',upgrade=FALSE)"
-RUN cd /tmp && \
-    wget https://download2.rstudio.org/rstudio-server-1.1.456-amd64.deb && \
-    gdebi rstudio-server-1.1.456-amd64.deb && \
-    rm rstudio-server-1.1.456-amd64.deb
-ENV PATH=/usr/lib/rstudio-server/bin/:$PATH
-CMD exec /usr/lib/rstudio-server/bin/rserver --server-daemonize 0
-EXPOSE 8787
+#RUN cd /tmp && \
+#    wget https://download2.rstudio.org/rstudio-server-1.1.456-amd64.deb && \
+#    gdebi rstudio-server-1.1.456-amd64.deb && \
+#    rm rstudio-server-1.1.456-amd64.deb
+#ENV PATH=/usr/lib/rstudio-server/bin/:$PATH
+#CMD exec /usr/lib/rstudio-server/bin/rserver --server-daemonize 0
+#EXPOSE 8787
 
 # Libbi 
 RUN cd /tmp && \
