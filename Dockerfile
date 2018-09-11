@@ -190,7 +190,15 @@ RUN add-apt-repository ppa:marutter/rrutter && \
     rm -rf /var/lib/apt/lists/*
 
 RUN R -e "setRepositories(ind=1:2);install.packages(c(\
-    'devtools'), dependencies=TRUE, clean=TRUE, repos='https://cran.microsoft.com/snapshot/2018-08-14')"
+    'devtools', \
+    'feather', \
+    'git2r', \
+    'ggplot2', \
+    'magrittr', \
+    'reticulate', \
+    'rmarkdown', \
+    'rodeo', \
+    'Rcpp'), dependencies=TRUE, clean=TRUE, repos='https://cran.microsoft.com/snapshot/2018-08-14')"
 RUN R -e "devtools::install_github('IRkernel/IRkernel')" && \
     R -e "IRkernel::installspec()" && \
     mv $HOME/.local/share/jupyter/kernels/ir* /usr/local/share/jupyter/kernels/ && \
