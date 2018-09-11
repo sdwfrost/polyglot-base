@@ -344,5 +344,6 @@ RUN  mv ${HOME}/.local/share/jupyter/kernels/javascript /usr/local/share/jupyter
     fix-permissions /opt/npm ${HOME} /usr/local/share/jupyter/kernels
 
 USER ${NB_USER}
-RUN rm -rf * && \
+RUN cd ${HOME} && \
+    rm -rf * && \
     mkdir work
