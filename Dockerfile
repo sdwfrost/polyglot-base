@@ -119,8 +119,7 @@ ENV SHELL=/bin/bash \
     LANGUAGE=en_US.UTF-8
 ENV HOME=/home/$NB_USER
 
-ADD fix-permissions /usr/local/bin/fix-permissions && \
-    rm -rf fix-permissions
+ADD fix-permissions /usr/local/bin/fix-permissions
 RUN chmod +x /usr/local/bin/fix-permissions
 
 # Create jovyan user with UID=1000 and in the 'users' group
