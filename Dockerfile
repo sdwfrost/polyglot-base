@@ -164,7 +164,7 @@ RUN pip install \
 # Julia dependencies
 # install Julia packages in /opt/julia instead of $HOME
 ENV JULIA_PKGDIR=/opt/julia
-ENV JULIA_VERSION=0.6.4
+ENV JULIA_VERSION=1.0.0
 
 RUN mkdir /opt/julia-${JULIA_VERSION} && \
     cd /tmp && \
@@ -198,13 +198,6 @@ RUN R -e "devtools::install_github('IRkernel/IRkernel')" && \
     fix-permissions /usr/local/share/jupyter /usr/local/lib/R
 RUN pip install rpy2
 RUN R -e "devtools::install_github('mrc-ide/odin',upgrade=FALSE)"
-#RUN cd /tmp && \
-#    wget https://download2.rstudio.org/rstudio-server-1.1.456-amd64.deb && \
-#    gdebi rstudio-server-1.1.456-amd64.deb && \
-#    rm rstudio-server-1.1.456-amd64.deb
-#ENV PATH=/usr/lib/rstudio-server/bin/:$PATH
-#CMD exec /usr/lib/rstudio-server/bin/rserver --server-daemonize 0
-#EXPOSE 8787
 
 # Libbi 
 RUN cd /tmp && \
@@ -320,17 +313,13 @@ RUN pip install cffi_magic \
 # Fortran
 RUN cd /tmp && \
     git clone https://github.com/ZedThree/jupyter-fortran-kernel && \
-    pip install -e jupyter-fortran-kernel && \
     cd jupyter-fortran-kernel && \
+    pip install . && \
     jupyter-kernelspec install fortran_spec/ && \
     cd /tmp && \
     rm -rf jupyter-fortran-kernel && \
     rm -rf /home/$NB_USER/.cache/pip && \    
     fix-permissions /usr/local/share/jupyter/kernels ${HOME}
-
-# SOS
-RUN pip install sos sos-notebook && \
-    python3 -m sos_notebook.install
 
 # Node
 RUN mkdir /opt/npm && \
