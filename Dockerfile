@@ -80,6 +80,7 @@ RUN apt-get update && apt-get -yq dist-upgrade\
     pari-gp2c \
     pbuilder \
     pkg-config \
+    psmisc \
     python3-dev \
     rsync \
     sbcl \
