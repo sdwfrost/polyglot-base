@@ -63,6 +63,7 @@ RUN apt-get update && apt-get -yq dist-upgrade\
     libsm6 \
     libssl-dev \
     libudunits2-0 \
+    libunwind-dev \
     libxext-dev \
     libxml2-dev \
     libxrender1 \
