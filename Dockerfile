@@ -195,7 +195,7 @@ RUN R -e "devtools::install_github('IRkernel/IRkernel')" && \
     mv $HOME/.local/share/jupyter/kernels/ir* /usr/local/share/jupyter/kernels/ && \
     chmod -R go+rx /usr/local/share/jupyter && \
     rm -rf $HOME/.local && \
-    fix-permissions /usr/local/share/jupyter
+    fix-permissions /usr/local/share/jupyter /usr/local/lib/R
 RUN pip install rpy2
 RUN R -e "devtools::install_github('mrc-ide/odin',upgrade=FALSE)"
 #RUN cd /tmp && \
