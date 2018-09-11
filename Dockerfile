@@ -1,3 +1,7 @@
+FROM ubuntu:latest
+
+LABEL maintainer="Simon Frost <sdwfrost@gmail.com>"
+
 USER root
 
 ENV DEBIAN_FRONTEND noninteractive
