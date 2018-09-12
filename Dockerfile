@@ -87,6 +87,7 @@ RUN apt-get update && apt-get -yq dist-upgrade\
     sbcl \
     software-properties-common \
     sudo \
+    swig \
     tzdata \
     ubuntu-dev-tools \
     unzip \
