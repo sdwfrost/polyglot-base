@@ -299,7 +299,7 @@ RUN cd /opt && \
     git clone https://github.com/robert-dodier/maxima-jupyter && \
     cd maxima-jupyter && \
     python3 ./install-maxima-jupyter.py --root=/opt/maxima-jupyter && \
-    sbcl --load quicklisp.lisp --non-interactive load-maxima-jupyter.lisp && \
+    sbcl --load /opt/quicklisp/setup.lisp --non-interactive load-maxima-jupyter.lisp && \
     fix-permissions /opt/maxima-jupyter /usr/local/share/jupyter/kernels
 
 # C
