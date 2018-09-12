@@ -346,5 +346,4 @@ RUN  mv ${HOME}/.local/share/jupyter/kernels/javascript /usr/local/share/jupyter
 
 USER ${NB_USER}
 RUN cd ${HOME} && \
-    rm -rf * && \
     mkdir work
