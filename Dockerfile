@@ -194,7 +194,7 @@ RUN cd /opt && \
 ENV PATH=/opt/LibBi/script:$PATH
 RUN R -e "install.packages('rbi')"
 
-# Julia dependencies
+# Julia
 # install Julia packages in /opt/julia instead of $HOME
 ENV JULIA_PKGDIR=/opt/julia
 ENV JULIA_VERSION=0.6.4
@@ -299,6 +299,7 @@ RUN cd /opt && \
     git clone https://github.com/robert-dodier/maxima-jupyter && \
     cd maxima-jupyter && \
     python3 ./install-maxima-jupyter.py --root=/opt/maxima-jupyter && \
+    sbcl --load quicklisp.lisp --non-interactive load-maxima-jupyter.lisp && \
     fix-permissions /opt/maxima-jupyter /usr/local/share/jupyter/kernels
 
 # C
