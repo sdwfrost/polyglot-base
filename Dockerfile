@@ -343,9 +343,10 @@ RUN npm install -g ijavascript \
     ijsinstall
 
 USER root
-RUN  mv ${HOME}/.local/share/jupyter/kernels/javascript /usr/local/share/jupyter/kernels/javascript && \
+RUN mv ${HOME}/.local/share/jupyter/kernels/javascript /usr/local/share/jupyter/kernels/javascript && \
     rm -rf ${HOME}/.local && \
-    fix-permissions /opt/npm ${HOME} /usr/local/share/jupyter/kernels
+    fix-permissions /opt/npm ${HOME} /usr/local/share/jupyter/kernels && \
+    fix-permissions /usr/local/lib/python3.6/dist-packages /usr/local/lib/python3.6/site-packages
 
 USER ${NB_USER}
 RUN cd ${HOME} && \
