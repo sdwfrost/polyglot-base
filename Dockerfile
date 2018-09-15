@@ -164,6 +164,28 @@ RUN pip install \
     rm -rf /home/$NB_USER/.cache/yarn && \
     fix-permissions /home/$NB_USER
 
+# Python libraries
+RUN pip install \
+    cython \
+    gr \
+    ipywidgets \
+    matplotlib \
+    nteract_on_jupyter \
+    numba \
+    numexpr \
+    pandas \
+    papermill \
+    plotly \
+    scipy \
+    seaborn \
+    sympy && \
+    # Activate ipywidgets extension in the environment that runs the notebook server
+    jupyter nbextension enable --py widgetsnbextension --sys-prefix && \
+    npm cache clean --force && \
+    rm -rf /home/$NB_USER/.cache/yarn && \
+    rm -rf /home/$NB_USER/.node-gyp && \
+    fix-permissions /home/$NB_USER
+
 RUN add-apt-repository ppa:marutter/rrutter && \
     apt-get update && \
     apt-get install -yq \
