@@ -178,6 +178,7 @@ RUN pip install \
     plotly \
     scipy \
     seaborn \
+    setuptools \
     sympy && \
     # Activate ipywidgets extension in the environment that runs the notebook server
     jupyter nbextension enable --py widgetsnbextension --sys-prefix && \
@@ -346,6 +347,107 @@ RUN cd /tmp && \
     rm -rf jupyter-fortran-kernel && \
     rm -rf /home/$NB_USER/.cache/pip && \    
     fix-permissions /usr/local/share/jupyter/kernels ${HOME}
+
+# C++
+# cling
+RUN cd /opt && \
+    mkdir /opt/cling && \
+    mkdir /opt/cling-build && \
+    wget https://github.com/vgvassilev/cling/archive/v0.5.tar.gz && \
+    tar xvf v0.5.tar.gz -C /opt/cling-build --strip-components=1 && \
+    cd /opt/cling-build/tools/packaging && \
+    chmod +x cpt.py && \
+    ./cpt.py --create-dev-env Release --with-workdir=/opt/cling-build && \
+    cp -R /opt/cling-build/cling-Ubuntu-18.04-x86_64*/ /opt/cling/ && \
+    fix-permissions ${HOME} /opt/cling && \
+    rm -rf /opt/cling-build
+ENV PATH=/opt/cling/bin:$PATH
+ENV LD_LIBRARY_PATH=/opt/cling/lib:$LD_LIBRARY_PATH
+
+# Xeus
+RUN cd /tmp && \
+    git clone https://github.com/zeromq/libzmq && \
+    cd libzmq && \
+    mkdir build && \
+    cd build && \
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DWITH_PERF_TOOL=OFF -DZMQ_BUILD_TESTS=OFF -DENABLE_CPACK=OFF -DCMAKE_BUILD_TYPE=Release ..  && \
+    make && \
+    make install && \
+    cd /tmp && \
+    rm -rf libzmq
+
+RUN cd /tmp && \
+    git clone https://github.com/zeromq/cppzmq && \
+    cd cppzmq && \
+    mkdir build && \
+    cd build && \
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_BUILD_TYPE=Release .. && \
+    make install && \
+    cd /tmp && \
+    rm -rf cppzmq
+
+RUN cd /tmp && \
+    git clone https://github.com/weidai11/cryptopp && \
+    cd cryptopp && \
+    git submodule add https://github.com/noloader/cryptopp-cmake.git cmake && \
+    git submodule update --remote && \
+    cp "$PWD/cmake/cryptopp-config.cmake" "$PWD" && \
+    cp "$PWD/cmake/CMakeLists.txt" "$PWD" && \
+    mkdir build && \
+    cd build && \
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_SHARED=OFF -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release .. && \
+    make && \
+    make install && \
+    cd /tmp && \
+    rm -rf cryptopp
+
+RUN cd /tmp && \
+    git clone https://github.com/nlohmann/json && \
+    cd json && \
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local . && \
+    make && \
+    make install && \
+    cd /tmp && \
+    rm -rf json
+
+RUN cd /tmp && \
+    git clone https://github.com/QuantStack/xtl && \
+    cd xtl && \
+    mkdir build && \
+    cd build && \
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_BUILD_TYPE=Release .. && \
+    make install && \
+    cd /tmp && \
+    rm -rf xtl
+
+RUN apt-get update && \
+    apt-get install -yq --no-install-recommends \
+    uuid-dev \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN cd /tmp && \
+    git clone https://github.com/QuantStack/xeus && \
+    cd xeus && \
+    mkdir build && \
+    cd build && \
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=Release .. && \
+    make && \
+    make install && \
+    cd /tmp && \
+    rm -rf xeus
+
+RUN cd /tmp && \
+    git clone https://github.com/QuantStack/xeus-cling && \
+    cd xeus-cling && \
+    mkdir build && \
+    cd build && \
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local .. && \
+    make && \
+    make install && \
+    cd /tmp && \
+    rm -rf xeus-cling && \
+    fix-permissions /opt/cling
 
 # Node
 RUN mkdir /opt/npm && \
