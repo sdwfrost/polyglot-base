@@ -17,6 +17,7 @@ RUN apt-get update && apt-get -yq dist-upgrade\
     build-essential \
     bzip2 \
     ca-certificates \
+    clang-6.0 \
     cmake \
     curl \
     darcs \
@@ -37,6 +38,7 @@ RUN apt-get update && apt-get -yq dist-upgrade\
     gnupg-agent \
     gzip \
     haskell-stack \
+    libclang-6.0-dev \
     libffi-dev \
     libgmp-dev \
     libgsl0-dev \
@@ -69,11 +71,22 @@ RUN apt-get update && apt-get -yq dist-upgrade\
     libxrender1 \
     libxt6 \
     libzmqpp-dev \
+    llvm-6.0-dev \
     lmodern \
     locales \
     mercurial \
     netcat \
     octave \
+    octave-dataframe \
+    octave-general \
+    octave-gsl \
+    octave-nlopt \
+    octave-odepkg \
+    octave-optim \
+    octave-symbolic \
+    octave-miscellaneous \
+    octave-missing-functions \
+    octave-pkg-dev \
     openjdk-8-jdk \
     openjdk-8-jre \
     pandoc \
@@ -260,12 +273,7 @@ RUN pip install gnuplot_kernel && \
     python3 -m gnuplot_kernel install
 
 # Octave
-RUN apt-get update && apt-get -yq dist-upgrade && \
-    apt-get install -yq --no-install-recommends \
-    octave && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*    
-RUN pip install octave_kernel
+  RUN pip install octave_kernel
 
 # XPP
 ENV XPP_DIR=/opt/xppaut
@@ -437,17 +445,17 @@ RUN cd /tmp && \
     cd /tmp && \
     rm -rf xeus
 
-RUN cd /tmp && \
-    git clone https://github.com/QuantStack/xeus-cling && \
-    cd xeus-cling && \
-    mkdir build && \
-    cd build && \
-    cmake -DCMAKE_INSTALL_PREFIX=/usr/local .. && \
-    make && \
-    make install && \
-    cd /tmp && \
-    rm -rf xeus-cling && \
-    fix-permissions /opt/cling
+#RUN cd /tmp && \
+#    git clone https://github.com/QuantStack/xeus-cling && \
+#    cd xeus-cling && \
+#    mkdir build && \
+#    cd build && \
+#    cmake -DCMAKE_INSTALL_PREFIX=/usr/local  -DLLVM_CONFIG=/opt/cling/bin/llvm-config .. && \
+#    make && \
+#    make install && \
+#    cd /tmp && \
+#    rm -rf xeus-cling && \
+#    fix-permissions /opt/cling
 
 # Node
 RUN mkdir /opt/npm && \
