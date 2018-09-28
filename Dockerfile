@@ -1,4 +1,4 @@
-FROM ubuntu:bionic-20180724.1
+FROM jupyter/minimal-notebook:latest
 
 LABEL maintainer="Simon Frost <sdwfrost@gmail.com>"
 
@@ -17,7 +17,6 @@ RUN apt-get update && apt-get -yq dist-upgrade\
     build-essential \
     bzip2 \
     ca-certificates \
-    clang-6.0 \
     cmake \
     curl \
     darcs \
@@ -38,7 +37,6 @@ RUN apt-get update && apt-get -yq dist-upgrade\
     gnupg-agent \
     gzip \
     haskell-stack \
-    libclang-6.0-dev \
     libffi-dev \
     libgmp-dev \
     libgsl0-dev \
@@ -65,13 +63,13 @@ RUN apt-get update && apt-get -yq dist-upgrade\
     libsm6 \
     libssl-dev \
     libudunits2-0 \
+    libudunits2-dev \
     libunwind-dev \
     libxext-dev \
     libxml2-dev \
     libxrender1 \
     libxt6 \
     libzmqpp-dev \
-    llvm-6.0-dev \
     lmodern \
     locales \
     mercurial \
@@ -120,8 +118,6 @@ RUN curl -sL https://deb.nodesource.com/setup_10.x | bash - && \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN ln -s /bin/tar /bin/gtar
-
 RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
     locale-gen
 
@@ -134,48 +130,6 @@ ENV SHELL=/bin/bash \
     LANG=en_US.UTF-8 \
     LANGUAGE=en_US.UTF-8
 ENV HOME=/home/$NB_USER
-
-ADD fix-permissions /usr/local/bin/fix-permissions
-RUN chmod +x /usr/local/bin/fix-permissions
-
-# Create jovyan user with UID=1000 and in the 'users' group
-# and make sure these dirs are writable by the `users` group.
-RUN groupadd wheel -g 11 && \
-    echo "auth required pam_wheel.so use_uid" >> /etc/pam.d/su && \
-    useradd -m -s /bin/bash -N -u $NB_UID $NB_USER && \
-    chmod g+w /etc/passwd && \
-    fix-permissions $HOME
-
-EXPOSE 8888
-WORKDIR $HOME
-
-# Install pip
-RUN cd /tmp && \
-    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
-    python3 get-pip.py && \
-    rm get-pip.py && \
-    rm -rf /home/$NB_USER/.cache/pip && \
-    fix-permissions /home/$NB_USER
-
-# Install Tini
-
-ENV TINI_VERSION v0.18.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/local/bin/tini
-RUN chmod +x /usr/local/bin/tini
-ENV PATH=/usr/local/bin:$PATH
-# Configure container startup
-ENTRYPOINT ["tini", "-g", "--"]
-
-RUN pip install \
-    notebook \
-    jupyterhub \
-    jupyterlab && \
-    jupyter labextension install @jupyterlab/hub-extension && \
-    npm cache clean --force && \
-    jupyter notebook --generate-config && \
-    rm -rf /home/$NB_USER/.cache/pip && \
-    rm -rf /home/$NB_USER/.cache/yarn && \
-    fix-permissions /home/$NB_USER
 
 # Python libraries
 RUN pip install \
@@ -192,7 +146,8 @@ RUN pip install \
     scipy \
     seaborn \
     setuptools \
-    sympy && \
+    sympy \
+    tzlocal && \
     # Activate ipywidgets extension in the environment that runs the notebook server
     jupyter nbextension enable --py widgetsnbextension --sys-prefix && \
     npm cache clean --force && \
@@ -207,8 +162,10 @@ RUN add-apt-repository ppa:marutter/rrutter && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+
+RUN mkdir -p /usr/local/share/jupyter/kernels
 RUN R -e "setRepositories(ind=1:2);install.packages(c(\
-    'devtools'), dependencies=TRUE, clean=TRUE, repos='https://cran.microsoft.com/snapshot/2018-08-14')"
+    'devtools'), dependencies=TRUE, clean=TRUE, repos='https://cran.microsoft.com/snapshot/2018-09-01')"
 RUN R -e "devtools::install_github('IRkernel/IRkernel')" && \
     R -e "IRkernel::installspec()" && \
     mv $HOME/.local/share/jupyter/kernels/ir* /usr/local/share/jupyter/kernels/ && \
@@ -232,6 +189,26 @@ RUN cd /opt && \
     fix-permissions /opt/LibBi
 ENV PATH=/opt/LibBi/script:$PATH
 RUN R -e "install.packages('rbi')"
+
+# Nim
+ENV NIMBLE_DIR=${HOME}/.nimble
+RUN mkdir ${NIMBLE_DIR} && \
+    cd ${NIMBLE_DIR} && \
+    mkdir bin && \
+    cd bin && \
+    curl https://nim-lang.org/choosenim/init.sh -sSf > choosenim.sh && \
+    chmod +x ./choosenim.sh && \
+    ./choosenim.sh -y
+ENV PATH=${NIMBLE_DIR}/bin:$PATH
+RUN choosenim update 0.18.0
+RUN fix-permissions ${NIMBLE_DIR}
+RUN nimble update
+RUN cd /opt && \
+    git clone https://github.com/stisa/jupyternim && \
+    cd jupyternim && \
+    nimble -y build --nilseqs:on && \
+    # ./jupyternim && \
+    fix-permissions /opt/jupyternim
 
 # Julia
 # install Julia packages in /opt/julia instead of $HOME
@@ -268,7 +245,7 @@ RUN julia -e 'Pkg.init()' && \
     rm -rf $HOME/.local && \
     fix-permissions $JULIA_PKGDIR /usr/local/share/jupyter
 
-# Add gnuplot kernel - gnuplot 5.2.3 already installed above
+# Add gnuplot kernel
 RUN pip install gnuplot_kernel && \
     python3 -m gnuplot_kernel install
 
@@ -336,6 +313,18 @@ RUN cd /opt && \
     sbcl --load /opt/quicklisp/setup.lisp --non-interactive load-maxima-jupyter.lisp && \
     fix-permissions /opt/maxima-jupyter /usr/local/share/jupyter/kernels
 
+# Scilab
+ENV SCILAB_VERSION=6.0.1
+ENV SCILAB_EXECUTABLE=/usr/local/bin/scilab-adv-cli
+RUN mkdir /opt/scilab-${SCILAB_VERSION} && \
+    cd /tmp && \
+    wget http://www.scilab.org/download/6.0.1/scilab-${SCILAB_VERSION}.bin.linux-x86_64.tar.gz && \
+    tar xvf scilab-${SCILAB_VERSION}.bin.linux-x86_64.tar.gz -C /opt/scilab-${SCILAB_VERSION} --strip-components=1 && \
+    rm /tmp/scilab-${SCILAB_VERSION}.bin.linux-x86_64.tar.gz && \
+    ln -fs /opt/scilab-${SCILAB_VERSION}/bin/scilab-adv-cli /usr/local/bin/scilab-adv-cli && \
+    ln -fs /opt/scilab-${SCILAB_VERSION}/bin/scilab-cli /usr/local/bin/scilab-cli && \
+    pip install scilab_kernel
+
 # C
 RUN pip install cffi_magic \
     jupyter-c-kernel && \
@@ -357,105 +346,8 @@ RUN cd /tmp && \
     fix-permissions /usr/local/share/jupyter/kernels ${HOME}
 
 # C++
-# cling
-RUN cd /opt && \
-    mkdir /opt/cling && \
-    mkdir /opt/cling-build && \
-    wget https://github.com/vgvassilev/cling/archive/v0.5.tar.gz && \
-    tar xvf v0.5.tar.gz -C /opt/cling-build --strip-components=1 && \
-    cd /opt/cling-build/tools/packaging && \
-    chmod +x cpt.py && \
-    ./cpt.py --create-dev-env Release --with-workdir=/opt/cling-build && \
-    cp -R /opt/cling-build/cling-Ubuntu-18.04-x86_64*/ /opt/cling/ && \
-    fix-permissions ${HOME} /opt/cling && \
-    rm -rf /opt/cling-build
-ENV PATH=/opt/cling/bin:$PATH
-ENV LD_LIBRARY_PATH=/opt/cling/lib:$LD_LIBRARY_PATH
-
-# Xeus
-RUN cd /tmp && \
-    git clone https://github.com/zeromq/libzmq && \
-    cd libzmq && \
-    mkdir build && \
-    cd build && \
-    cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DWITH_PERF_TOOL=OFF -DZMQ_BUILD_TESTS=OFF -DENABLE_CPACK=OFF -DCMAKE_BUILD_TYPE=Release ..  && \
-    make && \
-    make install && \
-    cd /tmp && \
-    rm -rf libzmq
-
-RUN cd /tmp && \
-    git clone https://github.com/zeromq/cppzmq && \
-    cd cppzmq && \
-    mkdir build && \
-    cd build && \
-    cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_BUILD_TYPE=Release .. && \
-    make install && \
-    cd /tmp && \
-    rm -rf cppzmq
-
-RUN cd /tmp && \
-    git clone https://github.com/weidai11/cryptopp && \
-    cd cryptopp && \
-    git submodule add https://github.com/noloader/cryptopp-cmake.git cmake && \
-    git submodule update --remote && \
-    cp "$PWD/cmake/cryptopp-config.cmake" "$PWD" && \
-    cp "$PWD/cmake/CMakeLists.txt" "$PWD" && \
-    mkdir build && \
-    cd build && \
-    cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_SHARED=OFF -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release .. && \
-    make && \
-    make install && \
-    cd /tmp && \
-    rm -rf cryptopp
-
-RUN cd /tmp && \
-    git clone https://github.com/nlohmann/json && \
-    cd json && \
-    cmake -DCMAKE_INSTALL_PREFIX=/usr/local . && \
-    make && \
-    make install && \
-    cd /tmp && \
-    rm -rf json
-
-RUN cd /tmp && \
-    git clone https://github.com/QuantStack/xtl && \
-    cd xtl && \
-    mkdir build && \
-    cd build && \
-    cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_BUILD_TYPE=Release .. && \
-    make install && \
-    cd /tmp && \
-    rm -rf xtl
-
-RUN apt-get update && \
-    apt-get install -yq --no-install-recommends \
-    uuid-dev \
-    && apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN cd /tmp && \
-    git clone https://github.com/QuantStack/xeus && \
-    cd xeus && \
-    mkdir build && \
-    cd build && \
-    cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=Release .. && \
-    make && \
-    make install && \
-    cd /tmp && \
-    rm -rf xeus
-
-#RUN cd /tmp && \
-#    git clone https://github.com/QuantStack/xeus-cling && \
-#    cd xeus-cling && \
-#    mkdir build && \
-#    cd build && \
-#    cmake -DCMAKE_INSTALL_PREFIX=/usr/local  -DLLVM_CONFIG=/opt/cling/bin/llvm-config .. && \
-#    make && \
-#    make install && \
-#    cd /tmp && \
-#    rm -rf xeus-cling && \
-#    fix-permissions /opt/cling
+RUN conda install xeus-cling xtensor xtensor-blas -c conda-forge -c QuantStack
+RUN fix-permissions /opt/conda
 
 # Node
 RUN mkdir /opt/npm && \
@@ -464,9 +356,6 @@ ENV PATH=/opt/npm/bin:$PATH
 ENV NODE_PATH=/opt/npm/lib/node_modules
 RUN fix-permissions /opt/npm
 
-# Make sure the contents of our repo are in ${HOME}
-COPY . ${HOME}
-RUN chown -R ${NB_UID} ${HOME}
 USER ${NB_USER}
 
 RUN npm install -g ijavascript \
@@ -478,8 +367,7 @@ USER root
 RUN mv ${HOME}/.local/share/jupyter/kernels/javascript /usr/local/share/jupyter/kernels/javascript && \
     rm -rf ${HOME}/.local && \
     fix-permissions /opt/npm ${HOME} /usr/local/share/jupyter/kernels && \
-    fix-permissions /usr/local/lib/python3.6
+    fix-permissions /usr/local/lib/python3.6 ${HOME}/.cache ${HOME} /opt/conda
 
 USER ${NB_USER}
-RUN cd ${HOME} && \
-    mkdir work
+RUN cd ${HOME}
