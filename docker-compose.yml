@@ -1,7 +1,15 @@
 version: '2'
 
 services:
-  man:
+  polyglot-base:
     build: .
     image: sdwfrost/polyglot-base
-
+    user: root
+    environment:
+        - GRANT_SUDO=yes
+        - NB_USER=jovyan
+    volumes:
+        - .:/home/jovyan/work
+    ports:
+        - 8888:8888
+    container_name: polyglot-base-container
