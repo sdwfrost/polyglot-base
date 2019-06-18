@@ -16,6 +16,7 @@ RUN apt-get update && apt-get -yq dist-upgrade\
     apt-transport-https \
     asymptote \
     build-essential \
+    bwidget \
     bzip2 \
     ca-certificates \
     cmake \
@@ -128,6 +129,8 @@ RUN apt-get update && apt-get -yq dist-upgrade\
     sqlite3 \
     sudo \
     swig \
+    tcl-dev \
+    tk-dev \
     tzdata \
     ubuntu-dev-tools \
     unzip \
